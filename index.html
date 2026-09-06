@@ -334,7 +334,7 @@
           <input id="sealSearch" type="search" placeholder="씰 이름을 검색하세요" />
           <div class="seal-counter"><b id="ownedSealCount">0</b> / <span id="totalSealCount">0</span>개 등록</div>
           <button class="secondary" id="resetSeals">전체 초기화</button>
-          <div class="price-status" id="priceStatus">가격 시트 연결 전</div>
+          <div class="price-status" id="priceStatus">공통 가격 불러오는 중</div>
         </div>
         <div class="seal-list" id="sealList"></div>
         <div class="seal-summary" id="sealSummary"></div>
@@ -562,7 +562,7 @@
       const fail = (error) => {
         if (priceState.size) {
           status.className = 'price-status connected';
-          status.textContent = `로컬 가격 적용됨 · ${priceState.size.toLocaleString()}개 · 구글 연결은 나중에 다시 확인`;
+          status.textContent = `공통 가격 적용됨 · ${priceState.size.toLocaleString()}개`;
           renderSeals(document.querySelector('#sealSearch').value);
           return;
         }
@@ -581,8 +581,8 @@
       const finish = () => {
         status.className = 'price-status connected';
         status.textContent = priceState.size
-          ? `가격 시트 연결됨 · ${priceState.size.toLocaleString()}개 가격 반영`
-          : '가격 시트 연결됨 · 임시 1T 가격 제외 · 직접 입력';
+          ? `공통 가격 적용됨 · ${priceState.size.toLocaleString()}개`
+          : '공통 가격 없음 · 직접 입력';
         renderSeals(document.querySelector('#sealSearch').value);
       };
       const localRows = Array.isArray(window.DMO_LOCAL_PRICES) ? window.DMO_LOCAL_PRICES : [];
@@ -593,11 +593,11 @@
           { replace:true }
         );
         status.className = 'price-status connected';
-        status.textContent = `로컬 가격 적용됨 · ${priceState.size.toLocaleString()}개 · 구글 업데이트 확인 중…`;
+        status.textContent = `공통 가격 적용됨 · ${priceState.size.toLocaleString()}개`;
         renderSeals(document.querySelector('#sealSearch').value);
       }
       if (!url) {
-        if (!priceState.size) status.textContent = '가격 시트 연결 전 · 연결 후 모든 방문자에게 같은 가격이 표시됩니다.';
+        if (!priceState.size) status.textContent = '공통 가격 없음 · 직접 입력';
         return;
       }
       if (!priceState.size) status.textContent = '가격 데이터 불러오는 중…';
