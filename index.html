@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="휴식 길드 &amp; 벼리베리의 디지몬마스터즈 씰 계산기" />
+  <title>씰 계산기 — 휴식 길드 &amp; 벼리베리</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --panel: #0d1a25;
+      --panel-2: #112333;
+      --line: #20384a;
+      --text: #edf7ff;
+      --muted: #8ca5b7;
+      --cyan: #34d8ff;
+      --blue: #3478ff;
+      --yellow: #ffca3a;
+      --good: #5ee6a8;
+      --danger: #ff6b7a;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 80% -10%, rgba(52,120,255,.24), transparent 34rem),
+        radial-gradient(circle at -10% 30%, rgba(52,216,255,.12), transparent 30rem),
+        var(--bg);
+      font-family: Pretendard, "Noto Sans KR", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 14px max(20px, calc((100vw - 1180px) / 2));
+      background: rgba(7,16,24,.88);
+      border-bottom: 1px solid rgba(52,216,255,.16);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 900; letter-spacing: -.03em; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 11px;
+      display: grid; place-items: center;
+      overflow: hidden; background: #242728;
+      box-shadow: 0 0 28px rgba(52,216,255,.28);
+    }
+    .brand-mark img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    .brand small { display: block; color: var(--muted); font-size: 10px; letter-spacing: .12em; }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    nav button {
+      color: var(--muted); background: transparent; border: 0; padding: 9px 12px; border-radius: 9px;
+    }
+    nav button:hover, nav button.active { color: var(--text); background: var(--panel-2); }
+
+    main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 34px 0 80px; }
+    .hero {
+      min-height: 330px;
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 22px;
+      padding: clamp(28px, 5vw, 58px);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(52,216,255,.22);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(17,35,51,.96), rgba(8,22,33,.88));
+      box-shadow: 0 24px 80px rgba(0,0,0,.34);
+    }
+    .hero::after {
+      content: ""; position: absolute; right: -8%; top: -50%; width: 420px; height: 420px;
+      border: 42px solid rgba(52,216,255,.08); border-radius: 50%;
+      box-shadow: 0 0 0 48px rgba(52,120,255,.045), 0 0 0 96px rgba(255,202,58,.025);
+    }
+    .eyebrow { color: var(--cyan); font-size: 13px; font-weight: 800; letter-spacing: .14em; }
+    h1 { margin: 15px 0 16px; max-width: 760px; font-size: clamp(38px, 6vw, 72px); line-height: .98; letter-spacing: -.065em; }
+    .hero p { margin: 0; max-width: 620px; color: var(--muted); line-height: 1.75; }
+    .hero-actions { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+    .primary, .secondary {
+      border: 0; border-radius: 12px; padding: 13px 18px; font-weight: 800;
+    }
+    .primary { color: #00151d; background: linear-gradient(135deg, var(--cyan), #7beaff); }
+    .secondary { color: var(--text); background: var(--panel-2); border: 1px solid var(--line); }
+    .hero-orb { position: relative; z-index: 2; display: grid; place-items: center; }
+    .sun {
+      width: min(230px, 70vw); aspect-ratio: 1; border-radius: 50%;
+      display: grid; place-items: center; color: #071018; font-weight: 950; font-size: 32px;
+      background: radial-gradient(circle at 36% 32%, #fff6ac, var(--yellow) 30%, #ff713f 68%, #c41f45);
+      box-shadow: 0 0 30px rgba(255,202,58,.4), 0 0 90px rgba(255,107,70,.3);
+    }
+
+    .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 20px 0 48px; }
+    .quick-card {
+      min-height: 130px; padding: 20px; border: 1px solid var(--line); border-radius: 18px;
+      background: linear-gradient(145deg, rgba(17,35,51,.88), rgba(10,24,35,.88));
+    }
+    .quick-card b { display: block; margin: 17px 0 4px; }
+    .quick-card span { color: var(--muted); font-size: 13px; }
+    .icon { color: var(--cyan); font-size: 22px; }
+
+    .section { display: none; scroll-margin-top: 85px; }
+    .section.active { display: block; }
+    .section-head { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 18px; }
+    h2 { margin: 0; font-size: clamp(27px, 4vw, 42px); letter-spacing: -.045em; }
+    .section-head p { color: var(--muted); margin: 7px 0 0; }
+    .pill { color: var(--cyan); background: rgba(52,216,255,.09); border: 1px solid rgba(52,216,255,.25); border-radius: 999px; padding: 7px 11px; font-size: 12px; }
+
+    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: rgba(13,26,37,.9); }
+    .card h3 { margin: 0 0 18px; font-size: 18px; }
+    .profile { display: flex; gap: 17px; align-items: center; margin-bottom: 20px; }
+    .avatar {
+      width: 72px; height: 72px; border-radius: 20px; display: grid; place-items: center;
+      color: #261000; font-weight: 950; background: linear-gradient(135deg, #fff08b, #ff744a);
+    }
+    .profile strong { display: block; font-size: 22px; }
+    .profile span { color: var(--muted); font-size: 13px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { padding: 13px; border-radius: 13px; background: #091620; border: 1px solid rgba(32,56,74,.8); }
+    .stat label { display: block; color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+    .stat strong { font-size: 19px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .field label { display: block; color: var(--muted); font-size: 12px; margin: 0 0 7px 2px; }
+    input, select {
+      width: 100%; color: var(--text); background: #08141d; border: 1px solid var(--line);
+      border-radius: 11px; padding: 11px 12px; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(52,216,255,.08); }
+    .result-card { grid-column: 1 / -1; }
+    .results { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .result { padding: 18px; border-radius: 15px; background: linear-gradient(145deg, #102536, #091620); border: 1px solid var(--line); }
+    .result small { color: var(--muted); }
+    .result b { display: block; margin-top: 8px; font-size: 24px; letter-spacing: -.03em; }
+    .result em { color: var(--good); font-size: 11px; font-style: normal; }
+
+    .seal-panel { padding: 14px; background: #06121b; border-color: #1d526b; }
+    .seal-toolbar { display: grid; grid-template-columns: auto minmax(220px, 1fr) 150px auto; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .seal-tabs { display: flex; gap: 5px; padding: 4px; background: #071923; border: 1px solid var(--line); border-radius: 12px; }
+    .seal-tabs button { color: var(--muted); background: transparent; border: 0; border-radius: 9px; padding: 9px 13px; font-weight: 800; }
+    .seal-tabs button.active { color: #02151d; background: var(--cyan); box-shadow: 0 0 22px rgba(52,216,255,.25); }
+    .seal-counter { color: var(--muted); white-space: nowrap; font-size: 13px; }
+    .seal-counter b { color: var(--text); }
+    .price-status { grid-column: 1 / -1; min-height: 24px; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .price-status::before { content:""; width: 7px; height: 7px; border-radius: 50%; background: #657988; }
+    .price-status.connected { color: var(--good); }
+    .price-status.connected::before { background: var(--good); box-shadow: 0 0 10px rgba(94,230,168,.6); }
+    .price-status.error { color: var(--danger); }
+    .price-status.error::before { background: var(--danger); }
+    .seal-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-height: 570px; overflow: auto; padding: 6px 5px 8px 0; }
+    .seal-card {
+      --seal-accent: #a86cff;
+      --rank-accent: var(--seal-accent);
+      position: relative; min-height: 250px; padding: 14px 13px; overflow: hidden;
+      border: 1px solid var(--rank-accent); border-radius: 2px;
+      background: linear-gradient(145deg, color-mix(in srgb, var(--rank-accent) 25%, #0b1721), #08131c 72%);
+      box-shadow: inset 0 3px 0 color-mix(in srgb, var(--rank-accent) 72%, transparent);
+    }
+    .seal-card::after { content:""; position:absolute; inset:0; pointer-events:none; background: repeating-linear-gradient(120deg, transparent 0 9px, rgba(255,255,255,.018) 10px 11px); }
+    .seal-card[data-stat="AT"], .seal-card[data-stat="HP"] { --seal-accent: #b36cff; }
+    .seal-card[data-stat="DS"] { --seal-accent: #18d0a0; }
+    .seal-card[data-stat="DE"] { --seal-accent: #d3a824; }
+    .seal-card[data-stat="HT"] { --seal-accent: #6d8dff; }
+    .seal-card[data-stat="CT"] { --seal-accent: #ff6d86; }
+    .seal-card[data-stat="EV"] { --seal-accent: #2e9fff; }
+    .seal-card[data-stat="BL"] { --seal-accent: #ff8738; }
+    .seal-card[data-rank="unregistered"] { --rank-accent: #425462; }
+    .seal-card[data-rank="normal"] { --rank-accent: var(--seal-accent); }
+    .seal-card[data-rank="bronze"] { --rank-accent: #c77b39; }
+    .seal-card[data-rank="silver"] { --rank-accent: #c8d2dc; }
+    .seal-card[data-rank="gold"] { --rank-accent: #f2c744; }
+    .seal-card[data-rank="platinum"] { --rank-accent: #54e1e8; }
+    .seal-card[data-rank="master"] { --rank-accent: #bd72ff; box-shadow: inset 0 3px 0 #e5baff, 0 0 20px rgba(189,114,255,.18); }
+    .seal-name { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+    .seal-name b { font-size: 17px; }
+    .seal-effect { position: relative; z-index: 1; margin: 25px 0 10px; color: var(--cyan); font-weight: 900; }
+    .seal-effect strong { margin-left: 7px; color: #b8ff5a; }
+    .seal-count { position: relative; z-index: 1; width: 100%; padding: 12px; color: #fff; background: rgba(1,8,13,.48); border: 1px solid rgba(255,255,255,.22); border-radius: 0; text-align: center; font-size: 24px; font-weight: 950; }
+    .tier-ladder { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 10px; margin-top: 10px; color: #6f8797; font-size: 11px; }
+    .tier-ladder span { display: flex; justify-content: space-between; }
+    .tier-ladder span.on { color: var(--tier-color, #edf7ff); font-weight: 900; text-shadow: 0 0 8px color-mix(in srgb, var(--tier-color, #edf7ff) 38%, transparent); }
+    .tier-ladder span[data-rank="normal"] { --tier-color: var(--seal-accent); }
+    .tier-ladder span[data-rank="bronze"] { --tier-color: #d78b47; }
+    .tier-ladder span[data-rank="silver"] { --tier-color: #d6e0e9; }
+    .tier-ladder span[data-rank="gold"] { --tier-color: #ffd95b; }
+    .tier-ladder span[data-rank="platinum"] { --tier-color: #66f3f6; }
+    .tier-ladder span[data-rank="master"] { --tier-color: #d497ff; }
+    .seal-card-foot { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; margin-top: 11px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.16); }
+    .seal-card-foot small { color: var(--rank-accent); font-weight: 900; }
+    .seal-price { position: relative; z-index: 1; display: grid; gap: 6px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+    .seal-price.locked { min-height: 45px; align-content: center; padding: 8px 10px; border: 1px dashed rgba(255,202,58,.35); background: rgba(255,202,58,.05); }
+    .seal-price.locked strong { color: #ffe26d; font-size: 12px; }
+    .money-inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+    .money-part { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px; align-items: center; }
+    .money-part input { min-width: 0; width: 100%; padding: 7px 5px; color: #ffe26d; background: rgba(1,8,13,.48); border: 1px solid rgba(255,226,109,.35); text-align: right; font-size: 13px; font-weight: 900; }
+    .money-part b { color: #ffe26d; font-size: 11px; }
+    .mini-reset { color: #ffe26d; background: rgba(255,202,58,.08); border: 1px solid #aa8114; padding: 4px 7px; font-size: 11px; }
+    .seal-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 16px 0 4px; padding: 16px; border: 1px solid #1d526b; background: #030d13; }
+    .summary-chip { min-height: 64px; display: grid; place-items: center; align-content: center; color: var(--muted); text-align: center; font-size: 13px; }
+    .summary-chip b { display: block; margin-top: 4px; color: #52ff88; font-size: 19px; text-shadow: 0 0 16px rgba(82,255,136,.34); }
+    .purchase-planner { margin-top: 16px; padding: 18px; border: 1px solid #28586d; background: linear-gradient(145deg, #071923, #041018); }
+    .planner-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 14px; }
+    .planner-head h3 { margin: 0 0 4px; }
+    .planner-head p { margin: 0; color: var(--muted); font-size: 12px; }
+    .budget-field { display: grid; grid-template-columns: auto minmax(260px, 380px); gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
+    .budget-field .money-part input, .target-field input { width: 100%; min-width: 0; color: #fff; background: #020b11; border: 1px solid #2b6077; padding: 10px 7px; text-align: right; font-weight: 850; }
+    .target-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .target-field { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; padding: 8px 10px; border: 1px solid rgba(255,255,255,.1); background: rgba(0,0,0,.18); }
+    .target-field label { color: var(--cyan); font-size: 12px; font-weight: 900; }
+    .planner-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .strategy-button { position: relative; }
+    .strategy-button::after {
+      content: attr(data-help); position: absolute; left: 50%; bottom: calc(100% + 10px); z-index: 20;
+      width: max-content; max-width: min(290px, 78vw); padding: 9px 11px; border: 1px solid #39728b; border-radius: 9px;
+      color: #eaf8ff; background: #06131c; box-shadow: 0 10px 28px rgba(0,0,0,.42);
+      font-size: 12px; font-weight: 650; line-height: 1.5; text-align: left; white-space: normal;
+      opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%, 5px); transition: .16s ease;
+    }
+    .strategy-button:hover::after, .strategy-button:focus-visible::after { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .strategy-button.strategy-active {
+      color: #00151d; border-color: #7beaff; background: linear-gradient(135deg, var(--cyan), #7beaff);
+      box-shadow: 0 0 0 2px rgba(52,216,255,.15), 0 0 22px rgba(52,216,255,.25);
+    }
+    .planner-result { margin-top: 14px; min-height: 60px; color: var(--text); }
+    .planner-summary { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 12px; border: 1px solid rgba(82,255,136,.3); background: rgba(82,255,136,.05); font-size: 13px; }
+    .planner-summary b { color: var(--good); }
+    .purchase-list { display: grid; gap: 7px; margin-top: 10px; }
+    .purchase-row { display: grid; grid-template-columns: minmax(150px, 1.4fr) .7fr .8fr .8fr; gap: 10px; align-items: center; padding: 10px 12px; border-left: 3px solid var(--seal-accent, var(--cyan)); background: rgba(255,255,255,.035); font-size: 12px; }
+    .purchase-row b { color: #fff; }
+    .purchase-row strong { color: #ffe26d; text-align: right; }
+    .purchase-empty { padding: 15px; color: var(--muted); border: 1px dashed #31566a; text-align: center; font-size: 12px; }
+    .saved { color: var(--good); font-size: 12px; min-height: 18px; margin-top: 12px; }
+    .note { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 16px; }
+
+    footer { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 45px; color: var(--muted); border-top: 1px solid var(--line); font-size: 12px; line-height: 1.7; }
+
+    @media (max-width: 860px) {
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-orb { display: none; }
+      .quick-grid { grid-template-columns: repeat(2, 1fr); }
+      .workspace { grid-template-columns: 1fr; }
+      .results { grid-template-columns: repeat(2, 1fr); }
+      .seal-toolbar { grid-template-columns: 1fr 1fr; }
+      .seal-tabs { grid-column: 1 / -1; }
+      .seal-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .target-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px) {
+      main { width: min(100% - 20px, 1180px); padding-top: 16px; }
+      .hero { padding: 27px 22px; border-radius: 20px; }
+      .quick-grid, .seal-list, .form-grid { grid-template-columns: 1fr; }
+      .seal-toolbar { grid-template-columns: 1fr; }
+      .seal-tabs { overflow-x: auto; }
+      .seal-summary { grid-template-columns: repeat(2, 1fr); }
+      .planner-head { align-items: stretch; flex-direction: column; }
+      .purchase-row { grid-template-columns: 1fr 1fr; }
+      .card { padding: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark"><img src="assets/seal-calculator-logo.png" alt="" /></div><div>씰 계산기<small>휴식 길드 &amp; 벼리베리</small></div></div>
+    <nav aria-label="주요 메뉴">
+      <button class="active" data-target="seals">씰 계산기</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home" class="section">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">DIGIMON MASTERS ONLINE</div>
+          <h1>내 세팅을<br />숫자로 확인하다.</h1>
+          <p>디지몬 기본 능력치부터 클론과 보유 씰까지 한곳에서 합산하는 비공식 팬 계산기입니다. 테스트 버전은 아폴로몬 U를 기준으로 동작합니다.</p>
+          <div class="hero-actions">
+            <button class="primary" data-go="calculator">아폴로몬 계산하기</button>
+            <button class="secondary" data-go="seals">보유 씰 등록하기</button>
+          </div>
+        </div>
+        <div class="hero-orb"><div class="sun">U</div></div>
+      </div>
+
+      <div class="quick-grid">
+        <div class="quick-card"><div class="icon">◈</div><b>디지몬 도감</b><span>아폴로몬 U 데이터 등록</span></div>
+        <div class="quick-card"><div class="icon">＋</div><b>클론 계산</b><span>실제 증가량 직접 입력</span></div>
+        <div class="quick-card"><div class="icon">◎</div><b>씰 설정</b><span>보유 단계 자동 저장</span></div>
+        <div class="quick-card"><div class="icon">∑</div><b>최종 능력치</b><span>기본 + 클론 + 씰 합산</span></div>
+      </div>
+    </section>
+
+    <section id="calculator" class="section">
+      <div class="section-head"><div><h2>능력치 계산기</h2><p>140% 크기 · 170레벨 기준</p></div><span class="pill">TEST BUILD 0.1</span></div>
+      <div class="workspace">
+        <article class="card">
+          <div class="profile"><div class="avatar">U</div><div><strong>아폴로몬</strong><span>백신 · 불 · 궁극체</span></div></div>
+          <h3>기본 능력치</h3>
+          <div class="stat-grid" id="baseStats"></div>
+        </article>
+
+        <article class="card">
+          <h3>클론 증가량 직접 입력</h3>
+          <div class="form-grid" id="cloneInputs"></div>
+          <p class="note">게임 스탯창에서 확인한 클론 증가량을 입력하세요. 입력 즉시 최종 능력치에 반영됩니다.</p>
+        </article>
+
+        <article class="card result-card">
+          <div class="section-head"><div><h3>최종 능력치</h3><p>아폴로몬 기본값 + 클론 + 저장된 씰</p></div><button class="secondary" id="resetClone">클론 초기화</button></div>
+          <div class="results" id="results"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="seals" class="section active">
+      <div class="section-head"><div><h2>씰 계산기</h2><p>선택 내용은 이 브라우저에 자동 저장됩니다.</p></div><span class="pill">자동 적용</span></div>
+      <article class="card seal-panel">
+        <div class="seal-toolbar">
+          <div class="seal-tabs" id="sealFilters" aria-label="씰 능력치 필터"></div>
+          <input id="sealSearch" type="search" placeholder="씰 이름을 검색하세요" />
+          <div class="seal-counter"><b id="ownedSealCount">0</b> / <span id="totalSealCount">0</span>개 등록</div>
+          <button class="secondary" id="resetSeals">전체 초기화</button>
+          <div class="price-status" id="priceStatus">가격 시트 연결 전</div>
+        </div>
+        <div class="seal-list" id="sealList"></div>
+        <div class="seal-summary" id="sealSummary"></div>
+        <section class="purchase-planner" aria-labelledby="plannerTitle">
+          <div class="planner-head">
+            <div><h3 id="plannerTitle">예산 구매 추천</h3><p>목표 최종 능력치까지 필요한 다음 씰 등급을 계산합니다.</p></div>
+            <div class="budget-field"><span>보유 예산</span><div class="money-inputs">
+              <label class="money-part"><input id="budgetT" data-budget-unit="t" type="number" min="0" max="9999" step="1" value="0" /><b>T</b></label>
+              <label class="money-part"><input id="budgetM" data-budget-unit="m" type="number" min="0" max="999" step="1" value="0" /><b>M</b></label>
+              <label class="money-part"><input id="budgetB" data-budget-unit="b" type="number" min="0" max="999" step="1" value="0" /><b>B</b></label>
+            </div></div>
+          </div>
+          <div class="target-grid" id="targetInputs"></div>
+          <div class="planner-actions">
+            <button class="secondary strategy-button" id="recommendCheap" data-help="다음 등급 비용 = (다음 등급 필요 수량 − 현재 수량) × 개당 가격. 이 비용이 가장 낮은 씰부터 추천합니다." aria-pressed="false">최저 비용 우선</button>
+            <button class="secondary strategy-button" id="recommendEfficient" data-help="효율 점수 = (목표에 실제 반영되는 증가량 ÷ 남은 목표량) ÷ 다음 등급 비용. 이 점수가 높은 씰부터 추천합니다." aria-pressed="false">효율 우선</button>
+            <button class="secondary" id="clearTargets">목표 초기화</button>
+          </div>
+          <div class="planner-result" id="plannerResult" aria-live="polite"><div class="purchase-empty">예산과 목표 능력치를 입력한 뒤 추천 방식을 선택하세요.</div></div>
+        </section>
+        <div class="saved" id="saveMessage" aria-live="polite"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    본 사이트는 팬이 제작한 비공식 테스트 도구이며 디지몬마스터즈 운영사와 공식적인 관계가 없습니다.<br />
+    게임 관련 명칭과 데이터의 권리는 각 권리자에게 귀속됩니다. 표시 수치는 실제 게임 업데이트에 따라 달라질 수 있습니다.
+  </footer>
+
+  <script src="seals-data.js?v=20260907-3"></script>
+  <script src="price-data.js?v=20260907-2"></script>
+  <script src="price-feed-config.js"></script>
+  <script>
+    const BASE = { HP: 28431, DS: 7534, AT: 12902, AS: 2.5, CT: 41.58, HT: 1860, DE: 778, EV: 42.95 };
+    const LABELS = { HP:'HP', DS:'DS', AT:'AT', AS:'AS', CT:'CT', HT:'HT', DE:'DE', EV:'EV' };
+    const PERCENT = new Set(['CT','EV','BL']);
+    const DECIMAL = new Set(['AS','CT','EV']);
+    const CLONEABLE = ['HP','AT','CT','HT','DE','EV'];
+    const STORAGE_KEY = 'dmo-lab-seals-v2';
+    const PRICE_STORAGE_KEY = 'dmo-lab-price-overrides-v1';
+    const PRICE_1T_RESET_KEY = 'dmo-lab-reset-placeholder-price-one-v2';
+    const PLANNER_STORAGE_KEY = 'dmo-lab-planner-v1';
+    const SUMMARY_STATS = ['HP','DS','AT','CT','HT','DE','BL','EV'];
+    let activeSealFilter = 'ALL';
+    const priceState = new Map();
+    let priceOverrides = {};
+    let plannerState = { budget:0, targets:{} };
+
+    const sampleSeals = [
+      { id:'guilmon', name:'길몬', stat:'AT', max:150 },
+      { id:'devimon', name:'데블몬', stat:'AT', max:200 },
+      { id:'patamon', name:'파닥몬', stat:'AT', max:150 },
+      { id:'greymon', name:'그레이몬', stat:'AT', max:200 },
+      { id:'gabumon', name:'파피몬', stat:'HT', max:200 },
+      { id:'agumon', name:'아구몬', stat:'HT', max:200 },
+      { id:'veemon', name:'브이몬', stat:'CT', max:5 },
+      { id:'renamon', name:'레나몬', stat:'CT', max:5 },
+      { id:'monodramon', name:'모노드라몬', stat:'HP', max:300 },
+      { id:'drimogemon', name:'두더지몬', stat:'DE', max:150 },
+      { id:'hawkmon', name:'호크몬', stat:'EV', max:.3 },
+      { id:'tentomon', name:'텐타몬', stat:'DS', max:250 },
+      { id:'diablomon', name:'디아블로몬', stat:'DS', max:400 },
+      { id:'leomon', name:'레오몬', stat:'DE', max:90 },
+      { id:'lilymon', name:'릴리몬', stat:'EV', max:.3 },
+      { id:'soulmon', name:'소울몬', stat:'HP', max:200 },
+      { id:'blockseal', name:'수호의 씰', stat:'BL', max:2 }
+    ];
+    const seals = Array.isArray(window.DMO_SEALS)
+      ? window.DMO_SEALS.map(seal => {
+          const stat = seal.statType;
+          const rawMax = Number(seal.maxIncrease);
+          return { id:String(seal.id), name:seal.name, stat, max:PERCENT.has(stat) ? rawMax / 100 : rawMax, masterCount:Number(seal.masterCount), buyable:Boolean(seal.buyable), customTiers:Array.isArray(seal.customTiers) ? seal.customTiers : null };
+        })
+      : sampleSeals;
+    const standardTiers = [
+      { count:0, rate:0, label:'미등록' },
+      { count:1, rate:.10, label:'1개 · 10%' },
+      { count:50, rate:.20, label:'50개 · 20%' },
+      { count:200, rate:.40, label:'200개 · 40%' },
+      { count:500, rate:.60, label:'500개 · 60%' },
+      { count:1000, rate:.80, label:'1,000개 · 80%' },
+      { count:3000, rate:1, label:'3,000개 · 100%' }
+    ];
+    const tierCountsByMaster = {
+      50: [1, 3, 10, 20, 30, 50],
+      100: [1, 25, 50, 75, 90, 100],
+      150: [1, 10, 30, 50, 100, 150],
+      200: [1, 50, 100, 150, 180, 200],
+      300: [1, 30, 100, 150, 200, 300],
+      400: [1, 30, 100, 150, 250, 400],
+      500: [1, 30, 100, 200, 350, 500],
+      700: [1, 30, 150, 300, 500, 700],
+      1000: [1, 50, 200, 500, 700, 1000],
+      3000: [1, 50, 200, 500, 1000, 3000]
+    };
+    const tierRates = [.10, .20, .40, .60, .80, 1];
+    const tierRanks = ['normal', 'bronze', 'silver', 'gold', 'platinum', 'master'];
+
+    let sealState = {};
+    try { sealState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { sealState = {}; }
+    try { priceOverrides = JSON.parse(localStorage.getItem(PRICE_STORAGE_KEY) || '{}'); } catch { priceOverrides = {}; }
+    try { plannerState = JSON.parse(localStorage.getItem(PLANNER_STORAGE_KEY) || '{"budget":0,"targets":{}}'); } catch { plannerState = { budget:0, targets:{} }; }
+    if (!plannerState || typeof plannerState !== 'object') plannerState = { budget:0, targets:{} };
+    if (!plannerState.targets || typeof plannerState.targets !== 'object') plannerState.targets = {};
+
+    const fmt = (value, stat) => {
+      if (stat === 'AS') return Number(value).toFixed(2) + '초';
+      if (PERCENT.has(stat)) return Number(value).toFixed(2) + '%';
+      return Math.round(value).toLocaleString('ko-KR');
+    };
+
+    const moneyToB = ({ t = 0, m = 0, b = 0 } = {}) =>
+      Math.max(0, Number(t) || 0) * 1000000 + Math.max(0, Number(m) || 0) * 1000 + Math.max(0, Number(b) || 0);
+
+    const moneyFromB = (value) => {
+      let total = Math.max(0, Math.round(Number(value) || 0));
+      const t = Math.floor(total / 1000000); total %= 1000000;
+      const m = Math.floor(total / 1000);
+      const b = total % 1000;
+      return { t, m, b };
+    };
+
+    const clampBudgetParts = ({ t = 0, m = 0, b = 0 } = {}) => ({
+      t:Math.min(9999, Math.max(0, Math.floor(Number(t) || 0))),
+      m:Math.min(999, Math.max(0, Math.floor(Number(m) || 0))),
+      b:Math.min(999, Math.max(0, Math.floor(Number(b) || 0)))
+    });
+
+    if (!localStorage.getItem(PRICE_1T_RESET_KEY)) {
+      Object.entries(priceOverrides).forEach(([id, value]) => {
+        const parts = value && typeof value === 'object' ? clampBudgetParts(value) : null;
+        const isOneT = parts && parts.t === 1 && parts.m === 0 && parts.b === 0;
+        const isOneM = parts && parts.t === 0 && parts.m === 1 && parts.b === 0;
+        const isLegacyOneM = typeof value !== 'object' && Number(value) === 1;
+        if (isOneT || isOneM || isLegacyOneM) delete priceOverrides[id];
+      });
+      localStorage.setItem(PRICE_STORAGE_KEY, JSON.stringify(priceOverrides));
+      localStorage.setItem(PRICE_1T_RESET_KEY, 'done');
+    }
+
+    const formatMoney = (value) => {
+      const parts = moneyFromB(value);
+      const text = [];
+      if (parts.t) text.push(`${parts.t.toLocaleString()}T`);
+      if (parts.m) text.push(`${parts.m.toLocaleString()}M`);
+      if (parts.b || !text.length) text.push(`${parts.b.toLocaleString()}B`);
+      return text.join(' ');
+    };
+
+    const sheetPriceToB = (price) => {
+      if (!price || !Number.isFinite(Number(price.price))) return 0;
+      const unit = String(price.unit || 'M').trim().toUpperCase();
+      if (unit === 'T') return Number(price.price) * 1000000;
+      if (unit === 'B') return Number(price.price);
+      return Number(price.price) * 1000;
+    };
+
+    const effectivePrice = (sealId) => {
+      const id = String(sealId);
+      const override = priceOverrides[id];
+      if (override && typeof override === 'object') {
+        const totalB = moneyToB(override);
+        if (totalB > 0) return { totalB, parts:moneyFromB(totalB), source:'직접 입력' };
+      }
+      const legacyM = Number(override);
+      if (Number.isFinite(legacyM) && legacyM > 0) {
+        const totalB = legacyM * 1000;
+        return { totalB, parts:moneyFromB(totalB), source:'직접 입력' };
+      }
+      const sheetPrice = priceState.get(id);
+      const totalB = sheetPriceToB(sheetPrice);
+      return totalB > 0 ? { totalB, parts:moneyFromB(totalB), source:'가격표' } : null;
+    };
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [], cell = '', quoted = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i], next = text[i + 1];
+        if (ch === '"' && quoted && next === '"') { cell += '"'; i++; }
+        else if (ch === '"') quoted = !quoted;
+        else if (ch === ',' && !quoted) { row.push(cell); cell = ''; }
+        else if ((ch === '\n' || ch === '\r') && !quoted) {
+          if (ch === '\r' && next === '\n') i++;
+          row.push(cell); if (row.some(value => value !== '')) rows.push(row); row = []; cell = '';
+        } else cell += ch;
+      }
+      if (cell || row.length) { row.push(cell); rows.push(row); }
+      return rows;
+    }
+
+    function applyPriceRows(headers, rows, { replace = true } = {}) {
+      const index = Object.fromEntries(headers.map((name, i) => [String(name).trim(), i]));
+      const idIndex = index.id ?? 0;
+      const priceIndex = index.price ?? 7;
+      const unitIndex = index.unit ?? 8;
+      const updatedAtIndex = index.updatedAt ?? 9;
+      const nextPrices = new Map();
+      rows.forEach(row => {
+        const id = String(row[idIndex] ?? '').trim();
+        const price = Number(String(row[priceIndex] ?? '').replaceAll(',', '').trim());
+        const unit = String(row[unitIndex] ?? 'M').trim().toUpperCase() || 'M';
+        const isPlaceholderOne = price === 1;
+        if (id && Number.isFinite(price) && price > 0 && !isPlaceholderOne) nextPrices.set(id, {
+          price, unit,
+          updatedAt:String(row[updatedAtIndex] ?? '').trim()
+        });
+      });
+      if (replace) priceState.clear();
+      nextPrices.forEach((value, id) => priceState.set(id, value));
+    }
+
+    function toGoogleQueryUrl(url) {
+      const parsed = new URL(url);
+      const gid = parsed.searchParams.get('gid') || '0';
+      let base = `${parsed.origin}${parsed.pathname}`;
+      base = base.replace(/\/pub\/?$/, '/gviz/tq').replace(/\/edit\/?$/, '/gviz/tq');
+      return `${base}?gid=${encodeURIComponent(gid)}&range=A4:K&headers=1&tqx=out:json;responseHandler:handlePriceSheet`;
+    }
+
+    async function loadPrices() {
+      const status = document.querySelector('#priceStatus');
+      const url = String(window.DMO_PRICE_FEED_URL || '').trim();
+      const fail = (error) => {
+        if (priceState.size) {
+          status.className = 'price-status connected';
+          status.textContent = `로컬 가격 적용됨 · ${priceState.size.toLocaleString()}개 · 구글 연결은 나중에 다시 확인`;
+          renderSeals(document.querySelector('#sealSearch').value);
+          return;
+        }
+        status.className = 'price-status error';
+        status.textContent = `가격 데이터를 불러오지 못했습니다 · ${error.message}`;
+      };
+      const applyCsvText = (text) => {
+        const parsed = parseCsv(text.replace(/^\uFEFF/, ''));
+        const headerRow = parsed.findIndex(row => {
+          const names = row.map(value => String(value).trim().toLowerCase());
+          return names.includes('id') && names.includes('price');
+        });
+        if (headerRow < 0) throw new Error('id·price 열을 찾을 수 없음');
+        applyPriceRows(parsed[headerRow], parsed.slice(headerRow + 1), { replace:false });
+      };
+      const finish = () => {
+        status.className = 'price-status connected';
+        status.textContent = priceState.size
+          ? `가격 시트 연결됨 · ${priceState.size.toLocaleString()}개 가격 반영`
+          : '가격 시트 연결됨 · 임시 1T 가격 제외 · 직접 입력';
+        renderSeals(document.querySelector('#sealSearch').value);
+      };
+      const localRows = Array.isArray(window.DMO_LOCAL_PRICES) ? window.DMO_LOCAL_PRICES : [];
+      if (localRows.length) {
+        applyPriceRows(
+          ['id', 'price', 'unit', 'updatedAt'],
+          localRows.map(row => [row.id, row.price, row.unit, row.updatedAt]),
+          { replace:true }
+        );
+        status.className = 'price-status connected';
+        status.textContent = `로컬 가격 적용됨 · ${priceState.size.toLocaleString()}개 · 구글 업데이트 확인 중…`;
+        renderSeals(document.querySelector('#sealSearch').value);
+      }
+      if (!url) {
+        if (!priceState.size) status.textContent = '가격 시트 연결 전 · 연결 후 모든 방문자에게 같은 가격이 표시됩니다.';
+        return;
+      }
+      if (!priceState.size) status.textContent = '가격 데이터 불러오는 중…';
+      window.handlePriceSheet = (response) => {
+        try {
+          if (!response || response.status === 'error' || !response.table) throw new Error('공개 시트를 읽을 수 없음');
+          const headers = response.table.cols.map(column => column.label || '');
+          const rows = response.table.rows.map(row => row.c.map(cell => cell ? (cell.v ?? cell.f ?? '') : ''));
+          applyPriceRows(headers, rows, { replace:false });
+          finish();
+        } catch (error) { fail(error); }
+      };
+      try {
+        const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}cacheBust=${Date.now()}`, { cache:'no-store' });
+        if (!response.ok) throw new Error(`공개 CSV 응답 ${response.status}`);
+        applyCsvText(await response.text());
+        finish();
+        return;
+      } catch (csvError) {
+        status.textContent = '공개 CSV 연결 재시도 중…';
+      }
+      try {
+        const old = document.querySelector('#googlePriceFeed');
+        if (old) old.remove();
+        const script = document.createElement('script');
+        script.id = 'googlePriceFeed';
+        script.src = `${toGoogleQueryUrl(String(window.DMO_PRICE_GVIZ_URL || url))}&cacheBust=${Date.now()}`;
+        script.onerror = () => fail(new Error('구글 가격표 연결 실패'));
+        document.head.appendChild(script);
+      } catch (error) { fail(error); }
+    }
+
+    function tiersForSeal(seal) {
+      if (Array.isArray(seal.customTiers) && seal.customTiers.length) {
+        return [standardTiers[0], ...seal.customTiers.map(tier => ({
+          count:Number(tier.count), rate:Number(tier.rate),
+          increase:tier.increase === null || tier.increase === undefined
+            ? null
+            : (PERCENT.has(seal.stat) ? Number(tier.increase) / 100 : Number(tier.increase)),
+          rank:tier.rank || '', label:tier.label || ''
+        }))];
+      }
+      const masterCount = Math.max(1, Number(seal.masterCount) || 3000);
+      const preset = tierCountsByMaster[masterCount];
+      if (preset) {
+        return [standardTiers[0], ...preset.map((count, index) => ({
+          count,
+          rate:tierRates[index],
+          rank:tierRanks[index],
+          label:`${count.toLocaleString()}개 · ${tierRates[index] * 100}%`
+        }))];
+      }
+      const beforeMaster = standardTiers.filter(tier => tier.count < masterCount);
+      return [...beforeMaster, { count:masterCount, rate:1, label:`${masterCount.toLocaleString()}개 · 100%` }];
+    }
+
+    function tierForCount(count, seal) {
+      let current = standardTiers[0];
+      tiersForSeal(seal).forEach(tier => { if (count >= tier.count) current = tier; });
+      return current;
+    }
+
+    function tierIncrease(seal, tier) {
+      return tier.increase !== null && tier.increase !== undefined && Number.isFinite(Number(tier.increase))
+        ? Number(tier.increase)
+        : seal.max * tier.rate;
+    }
+
+    function rankForTier(tier, seal) {
+      const masterCount = Math.max(1, Number(seal.masterCount) || 3000);
+      const labels = { normal:'일반', bronze:'브론즈', silver:'실버', gold:'골드', platinum:'플래티넘', master:'마스터' };
+      if (!tier.count) return { key:'unregistered', label:'미등록' };
+      if (tier.rank && labels[tier.rank]) return { key:tier.rank, label:labels[tier.rank] };
+      if (tier.count === masterCount && tier.rate === 1) return { key:'master', label:'마스터' };
+      if (tier.count >= 1000) return { key:'platinum', label:'플래티넘' };
+      if (tier.count >= 500) return { key:'gold', label:'골드' };
+      if (tier.count >= 200) return { key:'silver', label:'실버' };
+      if (tier.count >= 50) return { key:'bronze', label:'브론즈' };
+      return { key:'normal', label:'일반' };
+    }
+
+    function sealTotals(state = sealState) {
+      const totals = { HP:0, DS:0, AT:0, CT:0, HT:0, DE:0, BL:0, EV:0 };
+      seals.forEach(seal => {
+        const tier = tierForCount(Number(state[seal.id] || 0), seal);
+        totals[seal.stat] += tierIncrease(seal, tier);
+      });
+      return totals;
+    }
+
+    function renderBase() {
+      document.querySelector('#baseStats').innerHTML = Object.entries(BASE).map(([stat,value]) =>
+        `<div class="stat"><label>${LABELS[stat]}</label><strong>${fmt(value, stat)}</strong></div>`
+      ).join('');
+      document.querySelector('#cloneInputs').innerHTML = CLONEABLE.map(stat =>
+        `<div class="field"><label for="clone-${stat}">${stat} 클론 증가량${PERCENT.has(stat) ? ' (%)' : ''}</label><input id="clone-${stat}" data-clone="${stat}" type="number" min="0" step="${PERCENT.has(stat) ? '.01' : '1'}" value="0" /></div>`
+      ).join('');
+      document.querySelectorAll('[data-clone]').forEach(input => input.addEventListener('input', () => { renderResults(); invalidatePlanner(); }));
+    }
+
+    function renderResults() {
+      const totals = sealTotals();
+      document.querySelector('#results').innerHTML = Object.entries(BASE).map(([stat,base]) => {
+        const cloneEl = document.querySelector(`[data-clone="${stat}"]`);
+        const clone = cloneEl ? Number(cloneEl.value || 0) : 0;
+        const seal = Number(totals[stat] || 0);
+        const finalValue = base + clone + seal;
+        return `<div class="result"><small>${stat}</small><b>${fmt(finalValue, stat)}</b><em>클론 +${fmt(clone, stat)} · 씰 +${fmt(seal, stat)}</em></div>`;
+      }).join('');
+    }
+
+    function renderFilters() {
+      const filters = ['ALL', ...SUMMARY_STATS];
+      document.querySelector('#sealFilters').innerHTML = filters.map(stat =>
+        `<button type="button" class="${activeSealFilter === stat ? 'active' : ''}" data-seal-filter="${stat}">${stat === 'ALL' ? '전체' : stat}</button>`
+      ).join('');
+      document.querySelectorAll('[data-seal-filter]').forEach(button => button.addEventListener('click', () => {
+        activeSealFilter = button.dataset.sealFilter;
+        renderFilters(); renderSeals(document.querySelector('#sealSearch').value);
+      }));
+    }
+
+    function renderSeals(filter = '') {
+      const term = filter.trim().toLowerCase();
+      const visible = seals.filter(s => (activeSealFilter === 'ALL' || s.stat === activeSealFilter) && `${s.name} ${s.stat}`.toLowerCase().includes(term));
+      document.querySelector('#sealList').innerHTML = visible.map(seal => {
+        const masterCount = Math.max(1, Number(seal.masterCount) || 3000);
+        const sealTiers = tiersForSeal(seal);
+        const count = Math.max(0, Math.min(masterCount, Number(sealState[seal.id] || 0)));
+        const tier = tierForCount(count, seal);
+        const rank = rankForTier(tier, seal);
+        const applied = tierIncrease(seal, tier);
+        const price = effectivePrice(seal.id);
+        const priceParts = clampBudgetParts(price?.parts || { t:0, m:0, b:0 });
+        return `<div class="seal-card" data-stat="${seal.stat}" data-rank="${rank.key}">
+          <div class="seal-name"><b>${seal.name}</b><button type="button" class="mini-reset" data-reset-seal="${seal.id}">초기화</button></div>
+          <div class="seal-effect">${seal.stat}<strong>+${fmt(applied, seal.stat)}</strong></div>
+          <input class="seal-count" aria-label="${seal.name} 보유 수량" data-seal="${seal.id}" data-master-count="${masterCount}" type="number" min="0" max="${masterCount}" step="1" value="${count}" />
+          <div class="tier-ladder">${sealTiers.slice(1).map(t => { const stepRank = rankForTier(t, seal); const stepValue = t.increase !== null && t.increase !== undefined ? `+${fmt(tierIncrease(seal, t), seal.stat)}` : `${t.rate * 100}%`; return `<span class="${count >= t.count ? 'on' : ''}" data-rank="${stepRank.key}"><i>${t.count.toLocaleString()}</i><b>${stepValue}</b></span>`; }).join('')}</div>
+          ${seal.buyable ? `<div class="seal-price"><span>개당 가격</span><div class="money-inputs">
+            <label class="money-part"><input type="number" min="0" max="9999" step="1" data-price-seal="${seal.id}" data-money-unit="t" value="${priceParts.t || ''}" placeholder="0" /><b>T</b></label>
+            <label class="money-part"><input type="number" min="0" max="999" step="1" data-price-seal="${seal.id}" data-money-unit="m" value="${priceParts.m || ''}" placeholder="0" /><b>M</b></label>
+            <label class="money-part"><input type="number" min="0" max="999" step="1" data-price-seal="${seal.id}" data-money-unit="b" value="${priceParts.b || ''}" placeholder="0" /><b>B</b></label>
+          </div></div>` : '<div class="seal-price locked"><span>개당 가격</span><strong>이벤트·비거래 씰 — 구매 추천 제외</strong></div>'}
+          <div class="seal-card-foot"><small>${tier.count ? `${rank.label} · ${tier.count.toLocaleString()}개` : '미등록'}</small><span>최대 ${fmt(seal.max, seal.stat)}</span></div>
+        </div>`;
+      }).join('') || '<p class="note">검색 결과가 없습니다.</p>';
+      document.querySelector('#ownedSealCount').textContent = seals.filter(s => Number(sealState[s.id] || 0) > 0).length;
+      document.querySelector('#totalSealCount').textContent = seals.length;
+      document.querySelectorAll('[data-seal]').forEach(input => input.addEventListener('change', e => {
+        const masterCount = Math.max(1, Number(e.target.dataset.masterCount) || 3000);
+        sealState[e.target.dataset.seal] = Math.max(0, Math.min(masterCount, Number(e.target.value || 0)));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sealState));
+        renderSeals(document.querySelector('#sealSearch').value);
+        renderSealSummary(); renderResults();
+        invalidatePlanner();
+        document.querySelector('#saveMessage').textContent = '씰 설정이 자동 저장되어 계산기에 적용됐습니다.';
+      }));
+      document.querySelectorAll('[data-price-seal]').forEach(input => input.addEventListener('input', e => {
+        const id = e.target.dataset.priceSeal;
+        const card = e.target.closest('.seal-card');
+        const fields = [...card.querySelectorAll(`[data-price-seal="${id}"]`)];
+        const parts = clampBudgetParts(Object.fromEntries(fields.map(field => [field.dataset.moneyUnit, Number(field.value || 0)])));
+        fields.forEach(field => { field.value = parts[field.dataset.moneyUnit] || ''; });
+        if (moneyToB(parts) > 0) priceOverrides[id] = parts;
+        else delete priceOverrides[id];
+        localStorage.setItem(PRICE_STORAGE_KEY, JSON.stringify(priceOverrides));
+        invalidatePlanner();
+        document.querySelector('#saveMessage').textContent = '씰 가격이 이 브라우저에 자동 저장됐습니다.';
+      }));
+      document.querySelectorAll('[data-reset-seal]').forEach(button => button.addEventListener('click', () => {
+        sealState[button.dataset.resetSeal] = 0;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(sealState));
+        renderSeals(document.querySelector('#sealSearch').value); renderSealSummary(); renderResults(); invalidatePlanner();
+      }));
+    }
+
+    function renderSealSummary() {
+      const totals = sealTotals();
+      document.querySelector('#sealSummary').innerHTML = SUMMARY_STATS.map(stat =>
+        `<span class="summary-chip">${stat}<b>+${fmt(totals[stat] || 0, stat)}</b></span>`
+      ).join('');
+    }
+
+    function currentFinalStats(state = sealState) {
+      const totals = sealTotals(state);
+      return Object.fromEntries(SUMMARY_STATS.map(stat => {
+        const cloneEl = document.querySelector(`[data-clone="${stat}"]`);
+        const clone = cloneEl ? Number(cloneEl.value || 0) : 0;
+        return [stat, Number(BASE[stat] || 0) + clone + Number(totals[stat] || 0)];
+      }));
+    }
+
+    function savePlannerState() {
+      localStorage.setItem(PLANNER_STORAGE_KEY, JSON.stringify(plannerState));
+    }
+
+    function invalidatePlanner() {
+      const result = document.querySelector('#plannerResult');
+      if (result) result.innerHTML = '<div class="purchase-empty">설정이 변경됐습니다. 추천 버튼을 다시 눌러 계산하세요.</div>';
+    }
+
+    function setPlannerStrategy(strategy) {
+      const choices = { cheap:'#recommendCheap', efficient:'#recommendEfficient' };
+      Object.entries(choices).forEach(([key, selector]) => {
+        const button = document.querySelector(selector);
+        const selected = key === strategy;
+        button.classList.toggle('strategy-active', selected);
+        button.setAttribute('aria-pressed', String(selected));
+      });
+    }
+
+    function renderPlanner() {
+      const current = currentFinalStats();
+      const budgetParts = clampBudgetParts(plannerState.budgetParts && typeof plannerState.budgetParts === 'object'
+        ? moneyFromB(moneyToB(plannerState.budgetParts))
+        : moneyFromB(Math.max(0, Number(plannerState.budget || 0)) * 1000));
+      plannerState.budgetParts = budgetParts;
+      document.querySelector('#budgetT').value = budgetParts.t;
+      document.querySelector('#budgetM').value = budgetParts.m;
+      document.querySelector('#budgetB').value = budgetParts.b;
+      document.querySelector('#targetInputs').innerHTML = SUMMARY_STATS.map(stat => {
+        const value = plannerState.targets?.[stat] ?? '';
+        return `<label class="target-field"><span>${stat} 목표</span><input type="number" min="0" step="${PERCENT.has(stat) ? '.01' : '1'}" data-target-stat="${stat}" value="${value}" placeholder="0" /></label>`;
+      }).join('');
+      document.querySelectorAll('[data-target-stat]').forEach(input => input.addEventListener('input', e => {
+        const value = e.target.value === '' ? '' : Number(e.target.value);
+        plannerState.targets[e.target.dataset.targetStat] = value;
+        delete plannerState.strategy;
+        setPlannerStrategy(null);
+        savePlannerState(); invalidatePlanner();
+      }));
+      setPlannerStrategy(plannerState.strategy);
+      document.querySelector('#plannerResult').innerHTML = '<div class="purchase-empty">예산과 목표 능력치를 입력한 뒤 추천 방식을 선택하세요.</div>';
+    }
+
+    function recommendPurchases(strategy) {
+      const budgetParts = clampBudgetParts({
+        t:Number(document.querySelector('#budgetT').value || 0),
+        m:Number(document.querySelector('#budgetM').value || 0),
+        b:Number(document.querySelector('#budgetB').value || 0)
+      });
+      document.querySelector('#budgetT').value = budgetParts.t;
+      document.querySelector('#budgetM').value = budgetParts.m;
+      document.querySelector('#budgetB').value = budgetParts.b;
+      const budgetB = moneyToB(budgetParts);
+      const targets = {};
+      document.querySelectorAll('[data-target-stat]').forEach(input => {
+        const value = Number(input.value);
+        if (input.value !== '' && Number.isFinite(value)) targets[input.dataset.targetStat] = value;
+      });
+      plannerState = { budgetParts:moneyFromB(budgetB), targets, strategy };
+      setPlannerStrategy(strategy);
+      savePlannerState();
+
+      const startingStats = currentFinalStats();
+      const wantedStats = Object.keys(targets).filter(stat => targets[stat] > startingStats[stat]);
+      const result = document.querySelector('#plannerResult');
+      if (budgetB <= 0) {
+        result.innerHTML = '<div class="purchase-empty">보유 예산을 0보다 크게 입력하세요.</div>';
+        return;
+      }
+      if (!wantedStats.length) {
+        result.innerHTML = '<div class="purchase-empty">현재 능력치보다 높은 목표를 하나 이상 입력하세요.</div>';
+        return;
+      }
+
+      const simulated = { ...sealState };
+      const purchases = new Map();
+      const statsNow = { ...startingStats };
+      const plannerSeals = seals.filter(seal => seal.buyable).map(seal => ({
+        seal,
+        price:effectivePrice(seal.id),
+        masterCount:Math.max(1, Number(seal.masterCount) || 3000),
+        tiers:tiersForSeal(seal)
+      })).filter(item => item.price && Number.isFinite(Number(item.price.totalB)) && Number(item.price.totalB) > 0);
+      let spentB = 0;
+      for (let guard = 0; guard < 4000; guard++) {
+        const remaining = Object.fromEntries(wantedStats.map(stat => [stat, Math.max(0, targets[stat] - statsNow[stat])]));
+        const unfinished = wantedStats.filter(stat => remaining[stat] > 0.000001);
+        if (!unfinished.length) break;
+        const unfinishedSet = new Set(unfinished);
+
+        const candidates = plannerSeals.flatMap(({ seal, price, masterCount, tiers }) => {
+          if (!unfinishedSet.has(seal.stat)) return [];
+          const count = Math.max(0, Math.min(masterCount, Number(simulated[seal.id] || 0)));
+          let currentTier = tiers[0];
+          for (const tier of tiers) { if (count >= tier.count) currentTier = tier; }
+          const nextTier = tiers.find(tier => tier.count > count);
+          if (!nextTier) return [];
+          const quantity = nextTier.count - count;
+          const costB = quantity * Number(price.totalB);
+          if (costB > budgetB - spentB + 0.000001) return [];
+          const gain = tierIncrease(seal, nextTier) - tierIncrease(seal, currentTier);
+          const usefulGain = Math.min(gain, remaining[seal.stat]);
+          const progress = usefulGain / remaining[seal.stat];
+          return [{ seal, count, nextTier, quantity, costB, gain, progress, efficiency:progress / costB }];
+        });
+        if (!candidates.length) break;
+        candidates.sort((a, b) => strategy === 'cheap'
+          ? a.costB - b.costB || b.progress - a.progress || b.gain - a.gain
+          : b.efficiency - a.efficiency || a.costB - b.costB || b.gain - a.gain
+        );
+        const chosen = candidates[0];
+        simulated[chosen.seal.id] = chosen.nextTier.count;
+        spentB += chosen.costB;
+        statsNow[chosen.seal.stat] += chosen.gain;
+        const saved = purchases.get(chosen.seal.id) || {
+          seal:chosen.seal, from:Math.max(0, Number(sealState[chosen.seal.id] || 0)), to:chosen.count,
+          quantity:0, costB:0, gain:0
+        };
+        saved.to = chosen.nextTier.count;
+        saved.quantity += chosen.quantity;
+        saved.costB += chosen.costB;
+        saved.gain += chosen.gain;
+        purchases.set(chosen.seal.id, saved);
+      }
+
+      const finalStats = statsNow;
+      const rows = [...purchases.values()];
+      const gains = Object.fromEntries(wantedStats.map(stat => [stat, finalStats[stat] - startingStats[stat]]));
+      const unmet = wantedStats.filter(stat => finalStats[stat] + 0.000001 < targets[stat]);
+      const gainText = wantedStats.map(stat => `${stat} +${fmt(gains[stat], stat)}`).join(' · ');
+      const statusText = unmet.length ? `예산 내 추천 · ${unmet.join(', ')} 목표 일부 미달` : '입력한 목표 달성 가능';
+      result.innerHTML = `
+        <div class="planner-summary"><span>${statusText}</span><span>사용 <b>${formatMoney(spentB)}</b></span><span>잔액 <b>${formatMoney(budgetB - spentB)}</b></span><span>${gainText}</span></div>
+        ${rows.length ? `<div class="purchase-list">${rows.map(item => `<div class="purchase-row" style="--seal-accent:${item.seal.stat === 'DS' ? '#18d0a0' : item.seal.stat === 'DE' ? '#d3a824' : item.seal.stat === 'HT' ? '#6d8dff' : item.seal.stat === 'CT' ? '#ff6d86' : item.seal.stat === 'EV' ? '#2e9fff' : item.seal.stat === 'BL' ? '#ff8738' : '#b36cff'}"><b>${item.seal.name}</b><span>+${item.quantity.toLocaleString()}개 (${item.from.toLocaleString()} → ${item.to.toLocaleString()})</span><span>${item.seal.stat} +${fmt(item.gain, item.seal.stat)}</span><strong>${formatMoney(item.costB)}</strong></div>`).join('')}</div>` : '<div class="purchase-empty">현재 예산과 등록 가격으로 구매 가능한 다음 등급이 없습니다.</div>'}
+      `;
+    }
+
+    function runPlannerRecommendation(strategy) {
+      const result = document.querySelector('#plannerResult');
+      const buttons = [document.querySelector('#recommendCheap'), document.querySelector('#recommendEfficient')];
+      setPlannerStrategy(strategy);
+      result.innerHTML = '<div class="purchase-empty">추천 조합을 계산하는 중입니다.</div>';
+      buttons.forEach(button => { button.disabled = true; });
+      requestAnimationFrame(() => {
+        try {
+          recommendPurchases(strategy);
+        } catch (error) {
+          console.error(error);
+          result.innerHTML = '<div class="purchase-empty">추천 계산 중 오류가 발생했습니다. 입력값을 확인한 뒤 다시 시도하세요.</div>';
+        } finally {
+          buttons.forEach(button => { button.disabled = false; });
+        }
+      });
+    }
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === id));
+      document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.target === id));
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+
+    document.querySelectorAll('[data-target]').forEach(b => b.addEventListener('click', () => showSection(b.dataset.target)));
+    document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => showSection(b.dataset.go)));
+    document.querySelector('#sealSearch').addEventListener('input', e => renderSeals(e.target.value));
+    document.querySelectorAll('[data-budget-unit]').forEach(input => input.addEventListener('input', () => {
+      plannerState.budgetParts = clampBudgetParts({
+        t:Number(document.querySelector('#budgetT').value || 0),
+        m:Number(document.querySelector('#budgetM').value || 0),
+        b:Number(document.querySelector('#budgetB').value || 0)
+      });
+      document.querySelector('#budgetT').value = plannerState.budgetParts.t;
+      document.querySelector('#budgetM').value = plannerState.budgetParts.m;
+      document.querySelector('#budgetB').value = plannerState.budgetParts.b;
+      savePlannerState(); invalidatePlanner();
+    }));
+    document.querySelector('#recommendCheap').addEventListener('click', () => runPlannerRecommendation('cheap'));
+    document.querySelector('#recommendEfficient').addEventListener('click', () => runPlannerRecommendation('efficient'));
+    document.querySelector('#clearTargets').addEventListener('click', () => {
+      plannerState.targets = {};
+      delete plannerState.strategy;
+      savePlannerState(); renderPlanner();
+    });
+    document.addEventListener('focusin', event => {
+      const input = event.target;
+      if (input.matches?.('input[type="number"]')) requestAnimationFrame(() => input.select());
+    });
+    document.addEventListener('mouseup', event => {
+      const input = event.target;
+      if (input.matches?.('input[type="number"]')) {
+        event.preventDefault();
+        input.select();
+      }
+    });
+    document.querySelector('#resetClone').addEventListener('click', () => {
+      document.querySelectorAll('[data-clone]').forEach(input => input.value = 0); renderResults(); invalidatePlanner();
+    });
+    document.querySelector('#resetSeals').addEventListener('click', () => {
+      sealState = {}; localStorage.removeItem(STORAGE_KEY); renderFilters(); renderSeals(); renderSealSummary(); renderResults();
+      invalidatePlanner();
+      document.querySelector('#saveMessage').textContent = '모든 씰 설정을 초기화했습니다.';
+    });
+
+    renderBase(); renderFilters(); renderSeals(); renderSealSummary(); renderResults(); renderPlanner(); loadPrices();
+  </script>
+</body>
+</html>
