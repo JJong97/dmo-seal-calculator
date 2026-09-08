@@ -360,8 +360,9 @@
     게임 관련 명칭과 데이터의 권리는 각 권리자에게 귀속됩니다. 씰 효과 수치는 게임 내 표기를 기준으로 제공합니다.
   </footer>
 
-  <script src="seals-data.js?v=20260907-3"></script>
-  <script src="price-data.js?v=20260907-2"></script>
+  <script src="seals-data.js?v=20260908-1"></script>
+  <script src="price-data.js?v=20260908-1"></script>
+  <script src="price-history-data.js?v=20260908-1"></script>
   <script src="price-feed-config.js"></script>
   <script>
     const PERCENT = new Set(['CT','EV','BL']);
@@ -432,6 +433,12 @@
     try { priceOverrides = JSON.parse(localStorage.getItem(PRICE_STORAGE_KEY) || '{}'); } catch { priceOverrides = {}; }
     try { priceHistory = JSON.parse(localStorage.getItem(PRICE_HISTORY_STORAGE_KEY) || '{}'); } catch { priceHistory = {}; }
     if (!priceHistory || typeof priceHistory !== 'object' || Array.isArray(priceHistory)) priceHistory = {};
+    Object.entries(window.DMO_SHARED_PRICE_HISTORY || {}).forEach(([id, entries]) => {
+      priceHistory[String(id)] = Array.isArray(entries)
+        ? entries.filter(item => item && Number(item.totalB) > 0).map(item => ({ date:String(item.date), totalB:Math.round(Number(item.totalB)) }))
+        : [];
+    });
+    localStorage.setItem(PRICE_HISTORY_STORAGE_KEY, JSON.stringify(priceHistory));
     try { plannerState = JSON.parse(localStorage.getItem(PLANNER_STORAGE_KEY) || '{"budget":0,"targets":{}}'); } catch { plannerState = { budget:0, targets:{} }; }
     if (!plannerState || typeof plannerState !== 'object') plannerState = { budget:0, targets:{} };
     if (!plannerState.targets || typeof plannerState.targets !== 'object') plannerState.targets = {};
@@ -518,7 +525,7 @@
       const entries = Array.isArray(priceHistory[id]) ? priceHistory[id].filter(item => item && Number(item.totalB) > 0) : [];
       const sameDay = entries.findIndex(item => item.date === date);
       if (sameDay >= 0) entries[sameDay] = { date, totalB:value };
-      else if (!entries.length || Number(entries[entries.length - 1].totalB) !== value) entries.push({ date, totalB:value });
+      else entries.push({ date, totalB:value });
       priceHistory[id] = entries.sort((a, b) => a.date.localeCompare(b.date)).slice(-90);
       localStorage.setItem(PRICE_HISTORY_STORAGE_KEY, JSON.stringify(priceHistory));
     }
@@ -535,7 +542,7 @@
       const id = String(sealId);
       const seal = seals.find(item => String(item.id) === id);
       const current = effectivePrice(id);
-      if (current) recordPriceHistory(id, current.totalB, priceState.get(id)?.updatedAt || new Date());
+      if (current) recordPriceHistory(id, current.totalB, current.source === '가격표' ? (priceState.get(id)?.updatedAt || new Date()) : new Date());
       const entries = Array.isArray(priceHistory[id]) ? priceHistory[id] : [];
       const modal = document.querySelector('#priceHistoryModal');
       document.querySelector('#priceHistoryTitle').textContent = `${seal?.name || '씰'} - 가격 변동 그래프`;
@@ -603,8 +610,7 @@
         const id = String(row[idIndex] ?? '').trim();
         const price = Number(String(row[priceIndex] ?? '').replaceAll(',', '').trim());
         const unit = String(row[unitIndex] ?? 'M').trim().toUpperCase() || 'M';
-        const isPlaceholderOne = price === 1;
-        if (id && Number.isFinite(price) && price > 0 && !isPlaceholderOne) nextPrices.set(id, {
+        if (id && Number.isFinite(price) && price > 0) nextPrices.set(id, {
           price, unit,
           updatedAt:String(row[updatedAtIndex] ?? '').trim()
         });
